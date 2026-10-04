@@ -1,19 +1,6 @@
 package constants
 
-NIX_KEYWORDS :: [?]string {
-	"if",
-	"then",
-	"else",
-	"in",
-	"let",
-	"with",
-	"assert",
-	"or",
-	"rec",
-	"true",
-	"false",
-	"null",
-}
+NIX_KEYWORDS :: [?]string{"if", "then", "else", "in", "let", "with", "assert", "or", "rec"}
 
 NIXP_KEYWORDS :: [?]string {
 	"list",
@@ -33,7 +20,4 @@ NIXP_KEYWORDS :: [?]string {
 	"let*",
 	"import",
 	"or",
-	"true",
-	"false",
-	"null",
 }

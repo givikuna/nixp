@@ -1,4 +1,5 @@
-resolved builtins
+nix constants
+-> resolved builtins
 -> builtins
 -> nix keywords
 -> nixp keywords
