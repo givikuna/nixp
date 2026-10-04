@@ -981,6 +981,66 @@ The Nixp type system will only actually work in regards to other Nixp code, and 
 
 However, Nixp allows one to describe an FFI-like syntax for types for Nix code imports.
 
+### Attribute Sets
+
+In Nix attribute sets are simple and untyped.
+
+In Nixp, we'd like to have a type system that can define that an attribute set looks like.
+
+This can be done with a struct
+
+But can also be done without one:
+
+```Clojure
+(attrs ([[a :: Int] 10]
+        [[b :: Int] 15]))
+```
+
+This enforces that `a` and `b` must be integers.
+
+#### Structs
+
+Sometimes however, you want to define exactly what an attribute set'll look like.
+
+Consider an attribute set that contains an attribute that is an attribute set:
+
+```Clojure
+(attrs ([a (attrs ([b 10]
+                   [c 15]))]))
+```
+
+One can type the attributes of `a` as follows:
+
+```Clojure
+(attrs ([a (attrs ([[b :: Int] 10]
+                   [[c :: Int] 15]))]))
+```
+
+But one can also type the attribute `a` itself:
+
+```Clojure
+(attrs ([[a :: struct { b :: Int, c :: Int}]
+         (attrs ([b 10]
+                 [c 15]))]))
+```
+
+Which is type-system wise the same as:
+
+```Clojure
+(attrs ([[a :: struct { b :: Int, c :: Int}]
+         (attrs ([[b :: Int] 10]
+                 [[c :: Int] 15]))]))
+```
+
+One can also define a struct separately
+
+```Clojure
+(struct (A { b :: Int, c :: Int})
+        (attrs ([[a :: A]
+                 (attrs ([b 10]
+                         [c 15]))])))
+```
+
 ### Functions
 
 #### Single Parameter Functions
@@ -1012,3 +1072,5 @@ This can also be typed as follows:
           [y :: Int]])
         (+ x y))
 ```
+
+d
