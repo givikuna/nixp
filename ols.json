@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/DanielGavin/ols/master/misc/ols.schema.json",
+  "collections": [
+    {
+      "name": "core",
+      "path": "core"
+    }
+  ],
+  "enable_document_symbols": true,
+  "enable_hover": true,
+  "enable_snippets": true,
+  "odin_command": "/nix/store/cvv9hq5ir7rs8l1q2n74qsx4mamfcwrj-odin-dev-2026-07a/bin/odin"
+}

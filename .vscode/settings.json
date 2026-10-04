@@ -10,5 +10,6 @@
     "pkgs",
     "realpath",
     "Statefulness"
-  ]
+  ],
+  "ols.server.path": "/nix/store/c4rjkwnn0ikzhr6vfwa6ahm5p53vz77w-ols-dev-2026-06/bin/ols"
 }
