@@ -24,10 +24,19 @@
         {
           default = pkgs.mkShell {
             packages = with pkgs; [
+              # odin
               odin
               ols
 
+              # scripting
               elvish
+              nushell
+
+              # build
+              just
+              just-formatter
+              just-lsp
+              justbuild
             ];
 
             shellHook = ''

@@ -1,0 +1,25 @@
+; this is a nixp version of my flake from nixfiles at: https://github.com/givikuna/nixfiles/blob/main/flake.nix
+
+(attrs
+    ([description "all hail richard stallman"]
+     [inputs (attrs (
+        ; nixpkgs
+        [nixpkgs.url "github:nixos/nixpkgs/nixos-unstable"]
+
+        ; hm
+        [home-manager.url "github:nix-community/home-manager"]
+        [home-manager.inputs.nixpkgs.follows = "nixpkgs"]
+
+        ; flake mgmt
+        [flake-utils.url "github:numtide/flake-utils"]
+
+        ; version pinning
+        [multiverse.url "github:fzakaria/nixpkgs-multiverse"]
+
+        ; there's more but I'm not gonna list all of them
+        ))]
+     [outputs
+        (lambda (@args) ({ self, ... })
+                (let ([inputs removeAttrs args (list "self")])
+                    (import (p "flake-modules/outputs.nix")
+                            (attrs (inherit inputs self)))))]))

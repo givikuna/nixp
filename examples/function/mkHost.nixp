@@ -1,0 +1,48 @@
+; this is a nixp version of my https://github.com/givikuna/nixfiles/blob/main/flake-modules/functions/mkHost.nix file
+
+(lambda ({ inputs, ... })
+    (lambda ({hostname, username, system, version})
+            ([username "givik"]
+             [system "x86_64-linux"]
+             [version "unknown"])
+
+            (inputs.nixpkgs.lib.nixosSystem
+                (attrs  (inherit system)
+                        ([specialArgs (attrs (inherit inputs username version))]
+
+                         [modules (list
+                            ; sys
+                            (p "../../hosts/${hostname}/configuration.nix")
+
+                            (attrs (
+                                [system.nixos.label "seraphim-${version}"]
+                                [environment.etc."seraphim-version".text version]
+                            ))
+
+                            ; hm
+                            inputs.home-manager.nixosModules.home-manager
+                            (attrs (
+                                [home-manager (attrs (
+                                    [useGlobalPkgs true]
+                                    [useUserPackages true]
+                                    [backupFileExtension "backup"]
+
+                                    [extraSpecialArgs (attrs
+                                        (inherit inputs username)
+                                        (host-name hostname))]
+
+                                    [users.${username} (import
+                                        (p "../../home-manager/hosts/${hostname}.nix"))]
+                                ))]
+                            ))
+
+                            ; flatpaks
+                            inputs.nix-flatpak.nixosModules.nix-flatpak
+
+                            (attrs (
+                                [home-manager.sharedModules (list
+                                    inputs.nix-flatpak.homeManagerModules.nix-flatpak)]
+                            ))
+
+                            ; etc...
+                            )])))))
