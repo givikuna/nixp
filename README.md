@@ -981,6 +981,177 @@ The Nixp type system will only actually work in regards to other Nixp code, and 
 
 However, Nixp allows one to describe an FFI-like syntax for types for Nix code imports.
 
+### The `deftype` keyword
+
+The `deftype` keyword allows one to define any type.
+
+Consider:
+
+```Clojure
+(deftype Rune Int)
+```
+
+Now `Rune` is an alias for `Int`
+
+### Structs
+
+The `struct` keyword serves to create attribute set definitions.
+
+Consider:
+
+```Clojure
+(deftype Config
+    (struct { port :: Int
+            , host :: String }))
+
+```
+
+### Lists
+
+In Nixp, the `List` type is defined as follows:
+
+```Clojure
+(let ([[numbers :: List Int] (list 10 15 69)]) (
+    ; some calculations
+))
+```
+
+### Optional Struct Attributes
+
+Consider:
+
+```Clojure
+(deftype User
+    (struct { name :: String
+            , age  :: ?Int }))
+```
+
+So now. the `age` attribute is optional.
+
+### Closed and Open Structs
+
+One can even define closed and open structs.
+
+A closed struct is as follows:
+
+```Clojure
+(deftype TwoDimensionalCoordinates
+    (struct { x :: Int
+            , y :: Int }))
+```
+
+And open structs are as follows:
+
+```Clojure
+(deftype HigherDimensionalCoordinates
+    (struct { x :: Int
+            , y :: Int
+            , ...      }))
+```
+
+### Polymorphism and Generics
+
+One can define generic types as follows:
+
+```Clojure
+(lambda ([x :: a]) :: a x)
+```
+
+The compiler will then expect that whatever type of `x` is passed into this lambda function is the type that'll be returned.
+
+### Unions
+
+In Nix you often have dynamic typing and thus something can expect or work with many different possible types and values.
+
+Thus union types exist.
+
+Consider:
+
+```Clojure
+(deftype StringOrPath (Union String Path))
+
+(lambda ([src :: StringOrPath]) :: Derivation (...))
+```
+
+### Literal Types
+
+Literal type are also supported by this, as literals can also serve as types.
+
+Consider:
+
+```Clojure
+(deftype Arch (Union "x86_64-linux" "aarch64-linux" "x86_64-darwin"))
+```
+
+A value of such a type will expect a literal to be able to properly type check.
+
+Otherwise, it'll simply fail the type checking.
+
+### Any
+
+The `Any` type is an escape from the Nixp type system.
+
+Something that will likely be used frequently, and has a true use case in simplified Nixp code.
+
+The `Any` type is a type that can be applied to anything, the same way as in TypeScript.
+
+The compiler will not type check anything that is of the `Any` type and accept that is is correct and will work, and simply compile the code to Nix.
+
+### Recursive Types
+
+In Nix, you often define recursive trees.
+
+In Nixp, one can define these in a type safe manner with recursive types as follows:
+
+```Clojure
+(deftype JSON (Union
+                     String
+                     Int
+                     Float
+                     Bool
+                     Null
+                     (List JSON)
+                     (Dict JSON)))
+```
+
+### Tagged Unions
+
+The Nixp type system naturally supports tagged unions.
+
+Consider:
+
+```Clojure
+(deftype Result
+    (Union (struct { status :: "success", data :: Any })
+           (struct { status :: "error", message :: String})))
+```
+
+### Struct Intersections
+
+The `//` attribute set often creates an intersection of two structs.
+
+To represent this, one can use the `Intersect` type operator:
+
+Consider:
+
+```Clojure
+(deftype BaseConfig (struct { port :: Int, host  :: String }))
+(deftype Override   (struct { port :: Int, debug :: Bool }))
+
+(deftype FinalConfig (Intersect BaseConfig Override))
+```
+
+This is the same thing as:
+
+```Clojure
+(deftype FinalConfig
+    (struct { port  :: Int
+            , host  :: String
+            , debug :: Bool }))
+```
+
+## Applications of Types
+
 ### Attribute Sets
 
 In Nix attribute sets are simple and untyped.
@@ -1035,10 +1206,13 @@ Which is type-system wise the same as:
 One can also define a struct separately
 
 ```Clojure
-(struct (A { b :: Int, c :: Int})
-        (attrs ([[a :: A]
-                 (attrs ([b 10]
-                         [c 15]))])))
+(deftype A
+    (struct { b :: Int
+            , c :: String}))
+
+(attrs ([[a :: A]
+         (attrs ([b 10]
+                 [c 15]))]))
 ```
 
 ### Functions
@@ -1054,7 +1228,7 @@ Consider the Nixp function:
 This function can be typed as follows:
 
 ```Clojure
-(lambda [x :: Int] (lambda [y :: Int] (+ x y)))
+(lambda [x :: Int] (lambda [y :: Int] :: (Int) (+ x y)))
 ```
 
 #### Multi Parameter Functions
@@ -1069,8 +1243,112 @@ This can also be typed as follows:
 
 ```Clojure
 (lambda ([[x :: Int]
-          [y :: Int]])
+          [y :: Int]]) :: (Int)
         (+ x y))
 ```
 
-d
+### Function Type Signatures
+
+When typing a variable that holds a function, one can use the `->` arrow syntax:
+
+```Clojure
+(let ([[some-math-operation :: (-> Int Int Int)]
+        (lambda ([x y]) (+ x y))])
+     (some-math-operation 67 69))
+```
+
+This can also be doubly-typed (thus if any mismatches exist the compiler'll warn you):
+
+```Clojure
+(let ([[some-math-operation :: (-> Int Int Int)]
+        (lambda ([[x :: Int] [y :: Int]]) :: Int (+ x y))])
+     (some-math-operation 67 69))
+```
+
+#### Note:
+
+In a lambda function for defining the returning type:
+
+```Clojure
+(lambda ([[x :: Int] [y :: Int]]) :: Int (+ x y))
+```
+
+and
+
+```Clojure
+(lambda ([[x :: Int] [y :: Int]]) :: (Int) (+ x y))
+```
+
+are the same thing.
+
+The value at the place of the type must be evaluated, and thus, will not work with lists correctly without being written in `()`.
+Let me give an example.
+
+Consider:
+
+```Clojure
+(lambda ([[x :: Int] [y :: Int]]) :: List Int (list x y))
+```
+
+This will error and have odd and (as of now) undefined behavior.
+
+However the following will compile perfectly:
+
+```Clojure
+(lambda ([[x :: Int] [y :: Int]]) :: (List Int) (list x y))
+```
+
+### The `as` Keyword
+
+One can use the `as` keyword to make sure Nixp reads the type its supposed to.
+
+It's in the format of `(as Type Expr)`.
+
+Consider:
+
+```Clojure
+(let ([[config :: (strict { port :: Int, host :: String })]
+       (as (struct { port :: Int, host :: String })
+           (builtins.fromJSON (builtins.readFile (p "./config.json"))))])
+     config.port)
+```
+
+## Foreign Function Interface
+
+For the Nixp type system to be usable, one must be able to interact with untyped, standard Nix code (like `builtins`, `<nixpkgs>`, or other imported libraries).
+
+As such one can use the `declare` keyword.
+
+Consider:
+
+```Clojure
+(declare builtins.map :: (-> (-> a b) (List a) (List b)))
+```
+
+So now one can use this easily:
+
+```Clojure
+(let ([[numbers       :: (List Int)] (list 1 2 3)]
+      [[int-to-string :: (-> Int String)]
+       (lambda ([x :: Int]) (builtins.toString x))])
+     (builtins.map int-to-string numbers))
+```
+
+### Nixpkgs:
+
+Consider:
+
+```Clojure
+(let ([[pkgs :: (struct { hello :: Derivation, ... })]
+       (import (p "<nixpkgs>") (attrs))])
+       pkgs.hello)
+```
+
+> Note: `attrs` with no inputs compiles to `{}`
+
+Here, `<nixpkgs>` is imported as in nix `import <nixpkgs> {}`.
+And it is assigned to a variable `pkgs`.
+
+`pkgs` is a struct that has an attribute called `hello` of type `Derivation`.
+
+As such, we can use the nix package manager in a type safe methodology.
