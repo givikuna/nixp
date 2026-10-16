@@ -392,7 +392,7 @@ Nixp works in a similar way.
 
 ```Clojure
 (let ([x "foo"] [y "bar"])
-     (x + y))
+     (+ x y))
 ```
 
 However, nix always allows for `x` and `y` to use each other in definition.
@@ -411,7 +411,7 @@ However:
 
 ```Clojure
 (let ([x "foo"] [y x])
-     (x + y))
+     (+ x y))
 ```
 
 Is invalid in nixp.
@@ -420,7 +420,7 @@ For this to be valid one must use the `let*` function instead.
 
 ```Clojure
 (let* ([x "foo"] [y x])
-      (x + y))
+      (+ x y))
 ```
 
 A this allows for elements being declared in one let to know of each others existence.

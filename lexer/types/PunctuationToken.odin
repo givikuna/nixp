@@ -7,7 +7,6 @@ Punctuation :: enum {
 	RBracket,
 	LBrace,
 	RBrace,
-	Semicolon,
 	Comma,
 	Dot,
 	Colon,
