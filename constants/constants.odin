@@ -11,5 +11,4 @@ NIX_CONSTANTS :: [?]string {
 	"nixVersion",
 	"null",
 	"storeDir",
-	"true",
 }

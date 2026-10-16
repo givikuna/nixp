@@ -1,24 +1,35 @@
 package enums
 
 NixpKeyword :: enum {
-	//
 	Invalid,
-	//
+
+	// core
 	List,
 	Attrs,
+	Attrs_Rec,
 	Elem,
 	Inherit,
-	Inherit_Attrs, // "inherit-attrs"
+	Inherit_Attrs,
 	Lambda,
+	Cond,
 	Not,
 	True,
 	False,
-	Deftype,
-	Attrs_Rec, // "attrs-rec"
 	Assert,
 	With,
 	Let,
-	Let_Star, // "let*"
+	Let_Star,
 	Import,
 	Or,
+
+	// paths
+	P,
+
+	// types
+	Deftype,
+	Struct,
+	Union,
+	Intersect,
+	As,
+	Declare,
 }
