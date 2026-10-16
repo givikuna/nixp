@@ -3,10 +3,8 @@ package lexer_types
 LiteralKind :: enum {
 	Int,
 	Float,
-	String, // " & ''
-	Path,
-	Uri,
-	Indented,
+	String, // "..."
+	Indented, // ''...''
 }
 
 LiteralToken :: struct {

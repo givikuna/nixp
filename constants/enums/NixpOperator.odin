@@ -3,19 +3,19 @@ package enums
 NixOperator :: enum {
 	Invalid,
 
-	// Arithmetic
+	// arithmetic
 	Add, // +
 	Sub, // -
 	Mul, // *
 	Div, // /
 
-	// List
+	// list
 	Concat, // ++
 
-	// Attrset
+	// attrset
 	Update, // //
 
-	// Comparison
+	// comparison
 	Eq, // ==
 	Neq, // !=
 	Lt, // <
@@ -23,15 +23,15 @@ NixOperator :: enum {
 	Gt, // >
 	Gte, // >=
 
-	// Logic
+	// logic
 	And, // &&
 	Or, // ||
-	Not, // !
 	Implies, // =>
 
-	// Pipe
+	// pipe
 	Pipe, // |>
 
+	// types
 	TypeArrow, // ->
-	Annotate, // ::     (type annotation)
+	Annotate, // ::
 }

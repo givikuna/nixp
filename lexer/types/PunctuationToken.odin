@@ -1,19 +1,19 @@
 package lexer_types
 
 Punctuation :: enum {
-	LParen,
-	RParen,
-	LBracket,
-	RBracket,
-	LBrace,
-	RBrace,
-	Comma,
-	Dot,
-	Colon,
-	DoubleColon,
-	At,
-	Question,
-	Ellipsis,
+	LParen, // (
+	RParen, // )
+	LBracket, // [
+	RBracket, // ]
+	LBrace, // {
+	RBrace, // }
+	DollarLBrace, // ${
+	Comma, // ,
+	Dot, // .
+	Colon, // :
+	At, // @
+	Question, // ?
+	Ellipsis, // ...
 }
 
 PunctuationToken :: struct {

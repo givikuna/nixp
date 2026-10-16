@@ -29,7 +29,7 @@
 
                                     [extraSpecialArgs (attrs
                                         (inherit inputs username)
-                                        (host-name hostname))]
+                                        [host-name hostname])]
 
                                     [users.${username} (import
                                         (p "../../home-manager/hosts/${hostname}.nix"))]
