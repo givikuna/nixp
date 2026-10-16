@@ -11,7 +11,7 @@ This is a document that changes a lot.
 
 ## v0.1.0 - Foundation 🟡
 
-- [ ] Lexer
+- [x] Lexer
 - [ ] Parser
 - [ ] Nix Generation
 - [ ] Type Removal
