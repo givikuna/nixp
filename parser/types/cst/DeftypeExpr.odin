@@ -4,5 +4,5 @@ package cst_types
 
 DeftypeExpr :: struct {
 	name: string,
-	type: TypElem,
+	type: TypeElem,
 }
