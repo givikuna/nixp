@@ -1,6 +1,6 @@
 package parser
 
-import constant_enums "../constants/enums"
+import constant_enums "../../constants/enums"
 import lexer_types "../lexer/types"
 import parser_types "./types"
 
@@ -251,6 +251,7 @@ prs_cond_form :: proc(p: ^Parser, allocator := context.allocator) -> parser_type
 
 	return cond
 }
+
 
 @(private)
 prs_p_form :: proc(p: ^Parser, allocator := context.allocator) -> parser_types.Expr {
