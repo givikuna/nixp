@@ -1,10 +1,45 @@
-Nixp -> Token Array -> CST -> AST -> Nix AST -> Nix Code
+# Architecture
 
-CST -> AST transition does the type checking.
+This file is the `Architecture` docs for `Nixp`.
 
-Lexer: Nixp -> Token Array
-CST_Parser: Token Array -> CST
-Type_Checker: CST -> Result<boolean>
-AST_Parser: CST -> AST
-AST_Translator: AST -> Nix AST
-Nix_Unparser: Nix AST -> Nix Code
+For any unknown words check out `./Glossary.md`.
+
+`Nixp` is a typed frontend for `Nix`.
+A `.nixp` file is lexed into tokens, parsed into a `typed CST`, type checked, and then lowered to an `AST`, then transpiled to `Nix AST` and to `Nix` code.
+
+## Lexer (nixp -> tokens)
+
+The `lexer/` directory has two subdirectories that are packages.
+`types/` (`lexer_types`) are the token definitions.
+`src/` (`lexer`) is the actual lexer algorithm
+
+## Parser (tokens -> CST -> AST)
+
+### CST
+
+In the `parser/types/cst/` directory we have the `cst_types` package with CST node definitions.
+`TypedExpr` is the root union.
+
+In the `parser/src/cst/` directory we have the `cst_parser` package which parses the tokens into a CST.
+
+### AST
+
+In the `parser/types/ast/` directory we have the `ast_types` package with AST node definitions.
+
+In the `parser/src/ast/` directory we have `ast_parser` package that parses the CST into an AST (essentially Type Removal)
+
+## Type Checker (CST -> AST)
+
+TO-DO
+
+## Transpiler
+
+TO-DO
+
+### AST -> AST
+
+TO-DO
+
+### AST -> Code
+
+TO-DO
