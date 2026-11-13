@@ -186,6 +186,7 @@ parse_attrs_form :: proc(
 	allocator := context.allocator,
 ) -> cst_types.TypedExpr {
 	attrs := new(cst_types.TypedAttrsExpr, allocator)
+	attrs.is_rec = is_rec // <-- Add this assignment
 	attrs.bindings = make([dynamic]cst_types.TypedBinding, allocator)
 
 	if punct, ok := peek_cst(p).(lexer_types.PunctuationToken); ok && punct.kind == .LParen {

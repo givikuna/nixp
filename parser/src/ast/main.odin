@@ -32,10 +32,9 @@ parse_to_ast :: proc(cst: cst_types.TypedExpr, allocator := context.allocator) -
 
 	case ^cst_types.TypedAttrsExpr:
 		ast_node := new(ast_types.AttrsExpr, allocator)
-
-		ast_node.is_rec = false
-
+		ast_node.is_rec = node.is_rec
 		ast_node.bindings = make([dynamic]ast_types.AttrBinding, 0, len(node.bindings), allocator)
+
 		for b in node.bindings {
 			key_ident := new(ast_types.IdentifierExpr, allocator)
 			key_ident.token = lexer_types.IdentifierToken {
