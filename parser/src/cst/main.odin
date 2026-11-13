@@ -345,3 +345,40 @@ parse_p_form :: proc(p: ^CSTParserState, allocator := context.allocator) -> cst_
 	p_expr.path = parse_expr(p, allocator)
 	return p_expr
 }
+
+@(private)
+parse_form :: proc(p: ^CSTParserState, allocator := context.allocator) -> cst_types.TypedExpr {
+	tok := peek_cst(p)
+
+	#partial switch t in tok {
+	case lexer_types.KeywordToken:
+		advance_cst(p)
+
+		#partial switch t.keyword {
+		case .Attrs:
+			return parse_attrs_form(p, false, allocator)
+		case .Attrs_Rec:
+			return parse_attrs_form(p, true, allocator)
+		case .Let:
+			return parse_let_form(p, false, allocator)
+		case .Let_Star:
+			return parse_let_form(p, true, allocator)
+		case .Lambda:
+			return parse_lambda_form(p, allocator)
+		case .Cond:
+			return parse_cond_form(p, allocator)
+		case .Deftype:
+			return parse_deftype_form(p, allocator)
+		case .Declare:
+			return parse_declare_form(p, allocator)
+		case .As:
+			return parse_as_form(p, allocator)
+		case .List:
+			return parse_list_form(p, allocator)
+		case .P:
+			return parse_p_form(p, allocator)
+		}
+	}
+
+	return parse_call_form(p, allocator)
+}
