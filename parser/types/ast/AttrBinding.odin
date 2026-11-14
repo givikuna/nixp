@@ -1,6 +1,6 @@
 package ast_types
 
 AttrBinding :: struct {
-	key:   Expr,
+	keys:  [dynamic]Expr,
 	value: Expr,
 }

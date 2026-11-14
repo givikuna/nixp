@@ -40,18 +40,14 @@ tokenize_all :: proc(
 
 @(private)
 peek :: proc(l: ^Lexer, look_ahead := 0) -> u8 {
-	if l.pos + look_ahead >= len(l.source) {
-		return 0
-	}
+	if l.pos + look_ahead >= len(l.source) do return 0
 
 	return l.source[l.pos + look_ahead]
 }
 
 @(private)
 advance :: proc(l: ^Lexer) -> u8 {
-	if l.pos >= len(l.source) {
-		return 0
-	}
+	if l.pos >= len(l.source) do return 0
 
 	ch := l.source[l.pos]
 	l.pos += 1
@@ -59,9 +55,7 @@ advance :: proc(l: ^Lexer) -> u8 {
 	if ch == '\n' {
 		l.line += 1
 		l.col = 1
-	} else {
-		l.col += 1
-	}
+	} else do l.col += 1
 
 	return ch
 }
@@ -73,6 +67,7 @@ skip_whitespace_and_comments :: proc(l: ^Lexer) {
 
 		if ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n' {
 			advance(l)
+
 			continue
 		}
 
@@ -92,6 +87,7 @@ skip_whitespace_and_comments :: proc(l: ^Lexer) {
 				if peek(l) == '|' && peek(l, 1) == '#' {
 					advance(l) // |
 					advance(l) // #
+
 					break
 				}
 				advance(l)
@@ -198,74 +194,102 @@ next_token :: proc(l: ^Lexer) -> lexer_types.TokenWithPos {
 	switch ch {
 	case '+':
 		advance(l)
+
 		if peek(l) == '+' {
 			advance(l)
 			return mk_op(start_pos, 2, start_line, start_col, .Concat)
 		}
+
 		return mk_op(start_pos, 1, start_line, start_col, .Add)
+
 	case '-':
 		advance(l)
+
 		if peek(l) == '>' {
 			advance(l)
 			return mk_op(start_pos, 2, start_line, start_col, .TypeArrow)
 		}
+
 		return mk_op(start_pos, 1, start_line, start_col, .Sub)
+
 	case '*':
 		advance(l)
+
 		return mk_op(start_pos, 1, start_line, start_col, .Mul)
+
 	case '/':
 		advance(l)
+
 		if peek(l) == '/' {
 			advance(l)
 			return mk_op(start_pos, 2, start_line, start_col, .Update)
 		}
+
 		return mk_op(start_pos, 1, start_line, start_col, .Div)
+
 	case '=':
 		if peek(l, 1) == '=' {
 			advance(l)
 			advance(l)
+
 			return mk_op(start_pos, 2, start_line, start_col, .Eq)
 		}
+
 		if peek(l, 1) == '>' {
 			advance(l)
 			advance(l)
+
 			return mk_op(start_pos, 2, start_line, start_col, .Implies)
 		}
+
 	case '!':
 		if peek(l, 1) == '=' {
 			advance(l)
 			advance(l)
+
 			return mk_op(start_pos, 2, start_line, start_col, .Neq)
 		}
+
 	case '<':
 		advance(l)
 		if peek(l) == '=' {
 			advance(l)
+
 			return mk_op(start_pos, 2, start_line, start_col, .Lte)
 		}
+
 		return mk_op(start_pos, 1, start_line, start_col, .Lt)
+
 	case '>':
 		advance(l)
 		if peek(l) == '=' {
 			advance(l)
+
 			return mk_op(start_pos, 2, start_line, start_col, .Gte)
 		}
+
 		return mk_op(start_pos, 1, start_line, start_col, .Gt)
+
 	case '&':
 		if peek(l, 1) == '&' {
 			advance(l)
 			advance(l)
+
 			return mk_op(start_pos, 2, start_line, start_col, .And)
 		}
+
 	case '|':
 		if peek(l, 1) == '|' {
 			advance(l)
 			advance(l)
+
 			return mk_op(start_pos, 2, start_line, start_col, .Or)
 		}
+
 		if peek(l, 1) == '>' {
 			advance(l)
 			advance(l)
+
 			return mk_op(start_pos, 2, start_line, start_col, .Pipe)
 		}
 	}
@@ -296,7 +320,7 @@ lex_ident_or_keyword :: proc(
 	for l.pos < len(l.source) && is_ident_continue(peek(l)) {
 		advance(l)
 	}
-	// Special case for "let*"
+	// let*
 	if l.source[start_pos:l.pos] == "let" && peek(l) == '*' {
 		advance(l)
 	}
@@ -332,16 +356,15 @@ lex_number :: proc(l: ^Lexer, start_pos, start_line, start_col: int) -> lexer_ty
 		advance(l)
 	}
 
-	// Fractional part (only if followed by a digit, so `123.foo` doesn't eat `.`)
 	if kind == .Int && peek(l) == '.' && is_digit(peek(l, 1)) {
 		kind = .Float
-		advance(l) // consume '.'
+		advance(l) // .
 		for l.pos < len(l.source) && is_digit(peek(l)) {
 			advance(l)
 		}
 	}
 
-	// Exponent part: e or E
+	// part: e or E
 	if peek(l) == 'e' || peek(l) == 'E' {
 		kind = .Float
 		advance(l)
@@ -370,10 +393,12 @@ lex_string :: proc(l: ^Lexer, start_pos, start_line, start_col: int) -> lexer_ty
 	advance(l) // opening '"'
 	for l.pos < len(l.source) {
 		ch := advance(l)
+
 		if ch == '\\' && l.pos < len(l.source) {
 			advance(l) // skip escaped character
 			continue
 		}
+
 		if ch == '"' {
 			break
 		}
@@ -399,19 +424,22 @@ lex_indented_string :: proc(
 	advance(l) // '
 	for l.pos < len(l.source) {
 		if peek(l) == '\'' && peek(l, 1) == '\'' {
-			// Check for escaped '' (''' or ''$ or ''\)
 			if peek(l, 2) == '\'' || peek(l, 2) == '$' || peek(l, 2) == '\\' {
 				advance(l)
 				advance(l)
 				advance(l)
+
 				continue
 			}
 			advance(l)
 			advance(l)
+
 			break
 		}
+
 		advance(l)
 	}
+
 	return lexer_types.TokenWithPos {
 		token = lexer_types.LiteralToken {
 			kind = .Indented,

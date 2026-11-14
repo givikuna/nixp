@@ -1,7 +1,7 @@
 package cst_types
 
 TypedBinding :: struct {
-	name:      string,
+	keys:      [dynamic]TypedExpr,
 	type_expr: TypeElem,
 	value:     TypedExpr,
 }

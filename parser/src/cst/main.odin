@@ -141,44 +141,48 @@ parse_binding :: proc(
 	allocator := context.allocator,
 ) -> cst_types.TypedBinding {
 	binding := cst_types.TypedBinding{}
+	binding.keys = make([dynamic]cst_types.TypedExpr, allocator)
 
 	if punct, ok := peek_cst(p).(lexer_types.PunctuationToken); ok && punct.kind == .LBracket {
 		advance_cst(p)
 
+		has_inner_bracket := false
 		if inner_punct, ok := peek_cst(p).(lexer_types.PunctuationToken);
 		   ok && inner_punct.kind == .LBracket {
 			advance_cst(p)
-			if ident, ok := peek_cst(p).(lexer_types.IdentifierToken); ok {
-				binding.name = ident.name
-				advance_cst(p)
-			}
+			has_inner_bracket = true
+		}
 
-			if op, ok := peek_cst(p).(lexer_types.OperatorToken); ok && op.op == .Annotate {
-				advance_cst(p)
-				binding.type_expr = parse_type_elem(p, allocator)
-			}
+		for {
+			key_expr := parse_expr(p, allocator)
 
+			if key_expr != nil do append(&binding.keys, key_expr)
+
+			if pt, ok := peek_cst(p).(lexer_types.PunctuationToken); ok && pt.kind == .Dot {
+				advance_cst(p)
+			} else do break
+		}
+
+		if op, ok := peek_cst(p).(lexer_types.OperatorToken); ok && op.op == .Annotate {
+			advance_cst(p)
+			binding.type_expr = parse_type_elem(p, allocator)
+		}
+
+		if has_inner_bracket {
 			if c, ok := peek_cst(p).(lexer_types.PunctuationToken); ok && c.kind == .RBracket {
 				advance_cst(p)
 			}
-
-			binding.value = parse_expr(p, allocator)
-
-		} else {
-			if ident, ok := peek_cst(p).(lexer_types.IdentifierToken); ok {
-				binding.name = ident.name
-				advance_cst(p)
-			}
-			binding.value = parse_expr(p, allocator)
 		}
+
+		binding.value = parse_expr(p, allocator)
 
 		if c, ok := peek_cst(p).(lexer_types.PunctuationToken); ok && c.kind == .RBracket {
 			advance_cst(p)
 		}
 	}
+
 	return binding
 }
-
 @(private)
 parse_attrs_form :: proc(
 	p: ^CSTParserState,
@@ -186,17 +190,19 @@ parse_attrs_form :: proc(
 	allocator := context.allocator,
 ) -> cst_types.TypedExpr {
 	attrs := new(cst_types.TypedAttrsExpr, allocator)
-	attrs.is_rec = is_rec // <-- Add this assignment
+	attrs.is_rec = is_rec
 	attrs.bindings = make([dynamic]cst_types.TypedBinding, allocator)
 
 	if punct, ok := peek_cst(p).(lexer_types.PunctuationToken); ok && punct.kind == .LParen {
 		advance_cst(p)
+
 		for {
 			if p_tok, ok := peek_cst(p).(lexer_types.PunctuationToken);
 			   ok && p_tok.kind == .RParen {
 				advance_cst(p)
 				break
 			}
+
 			if _, eof := peek_cst(p).(lexer_types.EOFToken); eof do break
 
 			append(&attrs.bindings, parse_binding(p, allocator))
@@ -213,20 +219,24 @@ parse_type_elem :: proc(p: ^CSTParserState, allocator := context.allocator) -> c
 	#partial switch t in tok {
 	case lexer_types.IdentifierToken:
 		advance_cst(p)
+
 		ident := new(cst_types.TypeIdent, allocator)
 		ident.name = t.name
+
 		return ident
+
 	case lexer_types.PunctuationToken:
 		if t.kind == .Question {
 			advance_cst(p)
+
 			opt := new(cst_types.TypeOptional, allocator)
 			opt.inner = parse_type_elem(p, allocator)
+
 			return opt
 		}
 		if t.kind == .LParen {
 			advance_cst(p)
-			// recursively pulls inner type
-			// needs to be able to branch here based on type keyword tho
+
 			inner := parse_type_elem(p, allocator)
 
 			for {
@@ -234,14 +244,17 @@ parse_type_elem :: proc(p: ^CSTParserState, allocator := context.allocator) -> c
 					advance_cst(p)
 					break
 				}
+
 				if _, eof := peek_cst(p).(lexer_types.EOFToken); eof do break
 				advance_cst(p)
 			}
+
 			return inner
 		}
 	}
 
 	advance_cst(p)
+
 	return nil
 }
 
@@ -256,9 +269,8 @@ parse_lambda_form :: proc(
 	if ident, ok := peek_cst(p).(lexer_types.IdentifierToken); ok {
 		advance_cst(p)
 		append(&lambda.params, cst_types.TypedLambdaParam{name = ident.name})
-	} else {
-		advance_cst(p)
-	}
+	} else do advance_cst(p)
+
 
 	if op, ok := peek_cst(p).(lexer_types.OperatorToken); ok && op.op == .Annotate {
 		advance_cst(p)
@@ -266,6 +278,7 @@ parse_lambda_form :: proc(
 	}
 
 	lambda.body = parse_expr(p, allocator)
+
 	return lambda
 }
 
@@ -308,6 +321,7 @@ parse_declare_form :: proc(
 	}
 
 	dec.type = parse_type_elem(p, allocator)
+
 	return dec
 }
 
@@ -332,7 +346,9 @@ parse_list_form :: proc(
 		if p_tok, ok := peek_cst(p).(lexer_types.PunctuationToken); ok && p_tok.kind == .RParen {
 			break
 		}
+
 		if _, eof := peek_cst(p).(lexer_types.EOFToken); eof do break
+
 		append(&list_expr.elements, parse_expr(p, allocator))
 	}
 
@@ -343,6 +359,7 @@ parse_list_form :: proc(
 parse_p_form :: proc(p: ^CSTParserState, allocator := context.allocator) -> cst_types.TypedExpr {
 	p_expr := new(cst_types.TypedPExpr, allocator)
 	p_expr.path = parse_expr(p, allocator)
+
 	return p_expr
 }
 

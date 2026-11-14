@@ -1,6 +1,6 @@
 package ast_types
 
 LetBinding :: struct {
-	name: string,
+	keys: [dynamic]Expr,
 	expr: Expr,
 }
